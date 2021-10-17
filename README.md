@@ -7,11 +7,11 @@
 ## Descripción
 
 <p>Tutorial de como hacer un deployment de una SPA, tanto el backend como el frontend. Para hacer el deployment del back, vamos a utilizar <a href="https://www.heroku.com
-">Heroku</a> para nuestra base de datos de ProgreSQL y nuestro servidor de Express, y para el front, vamos a utilizar <a href="https://vercel.com/">Vercel</a>.<br><br/></p>
-
-## Configurando el backend
+">Heroku</a> para nuestra base de datos de ProgreSQL junto con nuestro servidor de Express, y para el front, vamos a utilizar <a href="https://vercel.com/">Vercel</a>.<br><br/></p>
 
 ---
+
+## Configurando el backend
 
 1. Empezaremos editando el <strong>package.json</strong> de nuestro back, en mi caso se encuentra dentro de la ruta <strong>/api</strong>. Cambiaremos las sigs lineas:
 
@@ -39,7 +39,23 @@ server.listen(process.env.PORT || 3001, () => {
 
 > Acá estamos configurando Express para que funcione, tanto cuando Heroku nos asigne un puerto, o estemos trabajando de manera local. En Heroku, el puerto se encuentra en una variable de entorno llamada <strong>PORT</strong>, si la variable existe, Express utiliza ese puerto, si no, utilizara el puerto que le configuramos nosotros, en este caso el 3001. También, podríamos en nuestro archivo <strong>.env</strong> definir nuestro puerto cuando trabajemos de manera local.
 
-3. Ahora, necesitamos configurar nuestro server para que acepte peticiones de otras rutas que no sean http://locahost:3000. Para esto vamos a necesitar cors, si no lo tienen instalado, dentro de la carpeta <strong>/api</strong>, ejecutar: <strong>npm install --save cors</strong>. Una vez instalado, será necesario requerirlo y utilizarlo en el server, para eso, en nuestra ruta <strong>/api/src</strong> editaremos nuestro archivo <strong>app.js</strong> de la sig manera:
+```
+.env file
+
+DB_NAME=nombrebasededatos
+DB_USER=usuariodepostgres
+DB_PASSWORD=passwordDePostgres
+DB_HOST=localhost
+API_KEY=api-key
+```
+
+3. Ahora, necesitamos configurar nuestro server para que acepte peticiones de otras rutas que no sean http://locahost:3000. Para esto vamos a necesitar cors, si no lo tienen instalado, dentro de la carpeta <strong>/api</strong>, ejecutar:
+
+```
+ npm install --save cors
+```
+
+Una vez instalado, será necesario requerirlo y utilizarlo en el server, para eso, en nuestra ruta <strong>/api/src</strong> editaremos nuestro archivo <strong>app.js</strong> de la sig manera:
 
 ```js
 const cors = require("cors");
@@ -50,10 +66,13 @@ server.use(cors());
 > Como les comente antes, necesitamos modificar nuestro header, para que ahora soporte peticiones no solo de localhost:3000, para eso, dentro del mismo archivo de <strong>app.js</strong>, editaremos nuestro res.header de la sig manera:
 
 ```js
-res.header("Access-Control-Allow-Origin", "*");
+server.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  ...
+}
 ```
 
-> Acá modificamos el 2do parámetro, para poder soportar request de todos los orígenes.
+> Acá modificamos el 2do parámetro del <strong>Access-Control-Allow-Origin</strong>, para poder soportar request de todos los orígenes.
 
 4. Ahora necesitamos configurar nuestra DB, para que cuando este en Heroku se conecte a la DB que creemos ahí, o, si estamos en un entorno local, utilice nuestra DB que tengamos en ProgreSQL. Para hacer eso, modificaremos el archivo <strong>db.js</strong> que se encuentra en la ruta <strong>/api/src</strong>. Cambiaremos las sig lineas:
 
@@ -94,26 +113,32 @@ let sequelize =
 
 > En este caso, estamos modificando la conexión de Sequelize, y las variables de entornos, nos estamos trayendo una nueva variable <strong>DB_NAME</strong>, por lo que será necesaria agregarla a nuestro archivo <strong>.env</strong> cuando trabajemos de manera local.
 
-<br></br>
-
 Con esto ya tendríamos nuestro backend configurado y listo, tanto para trabajar de manera local, como de manera remota. En este punto, recomiendo probar el servidor, ya sea con:
 
-> npm start
+```
+npm start
 
 o
 
-> npm run start:dev
+npm run start:dev
+```
 
 <p>
 Si todo está correcto, hacer los pusheos y commits necesarios a Github.
 <br></br>
 </p>
 
-## Configurando el frontend
-
 ---
 
-1. Para el front, empezaremos instalando dotenv, parados en nuestra ruta, en mi caso <strong>/client</strong>, haremos <strong>npm install --save dotenv</strong>. Una vez instalado, necesitaremos editar nuestro archivo <strong>index.js</strong> de nuestra ruta <strong>/client/src</strong>. Para hacerlo, agregaremos las sigs líneas:
+## Configurando el frontend
+
+1. Para el front, empezaremos instalando dotenv, parados en nuestra ruta, en mi caso <strong>/client</strong>, haremos:
+
+```
+npm install --save dotenv
+```
+
+Una vez instalado, necesitaremos editar nuestro archivo <strong>index.js</strong> de nuestra ruta <strong>/client/src</strong>. Para hacerlo, agregaremos las sigs líneas:
 
 ```js
 import axios from "axios";
@@ -143,9 +168,9 @@ axios.get(`/games?name=${name}`);
 
 <p> En este punto, ya tenemos nuestro front configurado, recomiendo probarlo ejecutando <strong>npm start</strong> y verificando que todas nuestras peticiones estén funcionando correctamente con nuestro servidor. Una vez hecho, realizar los pusheos y commits a Github.<br></br></p>
 
-## Montando nuestro servidor en Heroku
-
 ---
+
+## Montando nuestro servidor en Heroku
 
 - Primero necesitaremos una cuenta, si no tenemos una, crearla <a href="https://signup.heroku.com/">aquí</a>
 - Una vez logeado con nuestra cuenta, iremos a nuestro dashboard y le daremos a <strong>Create new app</strong>
@@ -245,9 +270,9 @@ https://my-app-name.herokuapp.com/ruta
 <p>Debería devolver los json, hacer los post, etcs que ustedes configuraron.
 <br></br></p>
 
-## Montando nuestro front en Vercel
-
 ---
+
+## Montando nuestro front en Vercel
 
 - Ingresamos a <a href="https://vercel.com">Vercel</a> y nos logeas con Github.
 - Luego hacemos click en New Project
@@ -276,7 +301,7 @@ https://my-app-name.herokuapp.com/ruta
 <img src="./imgs/vercel-config.png" alt="config"/>
 </p>
 
-- Y por ultimo, antes de darle a <strong>Deploy</strong>, nos falta configurar nuestra variable de entorno que habiamos definido antes, para poder utilizar ahora nuestra API de Herouku. Para eso, dentro de <strong>Configure Project</strong> le daremos a la seccion de <strong>Enviorement Variables</strong> y agregaremos nuestra variable asi:
+- Y por ultimo, antes de darle a <strong>Deploy</strong>, nos falta configurar nuestra variable de entorno que habiamos definido antes, para poder utilizar ahora nuestra API de Heroku. Para eso, dentro de <strong>Configure Project</strong> le daremos a la seccion de <strong>Enviorement Variables</strong> y agregaremos nuestra variable asi:
 
 | Name          | Value                                                       |
 | ------------- | ----------------------------------------------------------- |
